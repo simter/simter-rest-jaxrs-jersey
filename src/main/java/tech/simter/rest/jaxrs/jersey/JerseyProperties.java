@@ -37,7 +37,7 @@ public class JerseyProperties {
   /**
    * The exclude bean type for Jersey ResourceConfig.
    * <p>
-   * Config it through property <code>simter.jersey.excludeTypes<code>.
+   * Config it through property <code>simter.jersey.excludeTypes</code>.
    *
    * @return the exclude types
    */

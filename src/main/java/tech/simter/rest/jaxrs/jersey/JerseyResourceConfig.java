@@ -48,27 +48,27 @@ public class JerseyResourceConfig extends ResourceConfig implements ApplicationC
     if (jerseyProperties.getPackages() != null && jerseyProperties.getPackages().length > 0) {
       logger.info("register packages - {}", StringUtils.arrayToCommaDelimitedString(jerseyProperties.getPackages()));
       packages(jerseyProperties.getPackages());
+    } else {
+      // register injectable @javax.ws.rs.Path bean
+      final List<Class<?>> excludeTypes = jerseyProperties.getExcludeTypes() == null ?
+        Collections.emptyList() : jerseyProperties.getExcludeTypes();
+      applicationContext.getBeansWithAnnotation(Path.class).forEach(
+        (k, v) -> {
+          if (!excludeTypes.contains(v.getClass())) {
+            logger.info("register @Path component - {}", v.getClass().getName());
+            register(v);
+          }
+        });
+
+      // register injectable @javax.ws.rs.ext.Provider bean
+      applicationContext.getBeansWithAnnotation(Provider.class).forEach(
+        (k, v) -> {
+          if (!excludeTypes.contains(v.getClass())) {
+            logger.info("register @Provider component - {}", v.getClass().getName());
+            register(v);
+          }
+        });
     }
-
-    // register injectable @javax.ws.rs.Path bean
-    final List<Class<?>> excludeTypes = jerseyProperties.getExcludeTypes() == null ?
-      Collections.emptyList() : jerseyProperties.getExcludeTypes();
-    applicationContext.getBeansWithAnnotation(Path.class).forEach(
-      (k, v) -> {
-        if (!excludeTypes.contains(v.getClass())) {
-          logger.info("register @Path component - {}", v.getClass().getName());
-          register(v);
-        }
-      });
-
-    // register injectable @javax.ws.rs.ext.Provider bean
-    applicationContext.getBeansWithAnnotation(Provider.class).forEach(
-      (k, v) -> {
-        if (!excludeTypes.contains(v.getClass())) {
-          logger.info("register @Provider component - {}", v.getClass().getName());
-          register(v);
-        }
-      });
 
     //property("contextConfigLocation", "spring.xml");
   }
