@@ -30,28 +30,28 @@ public class JerseyResourceConfig extends ResourceConfig implements ApplicationC
     this.applicationContext = applicationContext;
   }
 
-  private JerseyProperties jerseyProperties;
+  private JerseyConfiguration jerseyConfiguration;
 
   /**
    * By default, this class will register all injectable bean with annotation @Path and @Provider,
    * but exclude all bean type within <code>excludeTypes</code>.
    *
-   * @param jerseyProperties the jersey ResourceConfig properties
+   * @param jerseyConfiguration the jersey ResourceConfig configuration
    */
-  public JerseyResourceConfig(JerseyProperties jerseyProperties) {
-    this.jerseyProperties = jerseyProperties;
+  public JerseyResourceConfig(JerseyConfiguration jerseyConfiguration) {
+    this.jerseyConfiguration = jerseyConfiguration;
   }
 
   @PostConstruct
   public void init() {
     // auto register all jax-rs annotation resources（@Path、@Provider）
-    if (jerseyProperties.getPackages() != null && jerseyProperties.getPackages().length > 0) {
-      logger.info("register packages - {}", StringUtils.arrayToCommaDelimitedString(jerseyProperties.getPackages()));
-      packages(jerseyProperties.getPackages());
+    if (jerseyConfiguration.getPackages() != null && jerseyConfiguration.getPackages().length > 0) {
+      logger.info("register packages - {}", StringUtils.arrayToCommaDelimitedString(jerseyConfiguration.getPackages()));
+      packages(jerseyConfiguration.getPackages());
     } else {
       // register injectable @javax.ws.rs.Path bean
-      final List<Class<?>> excludeTypes = jerseyProperties.getExcludeTypes() == null ?
-        Collections.emptyList() : jerseyProperties.getExcludeTypes();
+      final List<Class<?>> excludeTypes = jerseyConfiguration.getExcludeTypes() == null ?
+        Collections.emptyList() : jerseyConfiguration.getExcludeTypes();
       applicationContext.getBeansWithAnnotation(Path.class).forEach(
         (k, v) -> {
           if (!excludeTypes.contains(v.getClass())) {
@@ -70,6 +70,6 @@ public class JerseyResourceConfig extends ResourceConfig implements ApplicationC
         });
     }
 
-    //property("contextConfigLocation", "spring.xml");
+    if (jerseyConfiguration.getProperties() != null) jerseyConfiguration.getProperties().forEach(this::property);
   }
 }
