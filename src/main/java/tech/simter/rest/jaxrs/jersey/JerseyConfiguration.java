@@ -19,6 +19,7 @@ public class JerseyConfiguration {
   private String[] packages;
   private List<Class<?>> excludeTypes;
   private Map<String, Object> properties;
+  private GensonConfiguration genson;
 
   /**
    * The auto scan packages for Jersey ResourceConfig.
@@ -57,5 +58,13 @@ public class JerseyConfiguration {
 
   public void setProperties(Map<String, Object> properties) {
     this.properties = properties;
+  }
+
+  public GensonConfiguration getGenson() {
+    return genson;
+  }
+
+  public void setGenson(GensonConfiguration genson) {
+    this.genson = genson;
   }
 }

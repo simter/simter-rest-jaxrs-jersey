@@ -68,6 +68,11 @@
       <groupId>org.glassfish.jersey.core</groupId>
       <artifactId>jersey-server</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.owlike</groupId>
+      <artifactId>genson</artifactId>
+      <optional>true</optional>
+    </dependency>
 
     <!-- Test -->
     <dependency>

@@ -1,5 +1,12 @@
 package tech.simter.rest.jaxrs.jersey;
 
+import com.owlike.genson.Converter;
+import com.owlike.genson.Factory;
+import com.owlike.genson.GensonBuilder;
+import com.owlike.genson.convert.ContextualFactory;
+import com.owlike.genson.ext.GensonBundle;
+import com.owlike.genson.ext.jaxb.JAXBBundle;
+import com.owlike.genson.ext.jaxrs.GensonJaxRSFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +50,7 @@ public class JerseyResourceConfig extends ResourceConfig implements ApplicationC
   }
 
   @PostConstruct
-  public void init() {
+  public void init() throws Exception {
     // auto register all jax-rs annotation resources（@Path、@Provider）
     if (jerseyConfiguration.getPackages() != null && jerseyConfiguration.getPackages().length > 0) {
       logger.info("register packages - {}", StringUtils.arrayToCommaDelimitedString(jerseyConfiguration.getPackages()));
@@ -70,6 +77,59 @@ public class JerseyResourceConfig extends ResourceConfig implements ApplicationC
         });
     }
 
+    // set properties
     if (jerseyConfiguration.getProperties() != null) jerseyConfiguration.getProperties().forEach(this::property);
+
+    // custom genson ConverterFactory
+    if (jerseyConfiguration.getGenson() != null) {
+      configGenson();
+    }
+  }
+
+  private void configGenson() throws Exception {
+    GensonConfiguration config = jerseyConfiguration.getGenson();
+    if (config == null) return;
+
+    logger.info("register genson custom feature");
+
+    // initial genson
+    GensonBuilder gensonBuilder = new GensonBuilder()
+      .withBundle(new JAXBBundle())
+      .useConstructorWithArguments(true);
+
+    // withConverterFactory
+    if (config.getConverterFactories() != null) {
+      logger.info("register genson ConverterFactories");
+      for (Class<Factory<? extends Converter<?>>> clazz : config.getConverterFactories())
+        gensonBuilder.withConverterFactory(instanceClass(clazz));
+    }
+
+    // withContextualFactory
+    if (config.getContextualFactories() != null) {
+      logger.info("register genson ContextualFactories");
+      for (Class<ContextualFactory<?>> clazz : config.getContextualFactories())
+        gensonBuilder.withContextualFactory(instanceClass(clazz));
+    }
+
+    // withBundle
+    if (config.getBundles() != null) {
+      logger.info("register genson Bundles");
+      for (Class<GensonBundle> clazz : config.getBundles())
+        gensonBuilder.withBundle(instanceClass(clazz));
+    }
+
+    // withConverters
+    if (config.getConverters() != null) {
+      logger.info("register genson Converters");
+      for (Class<Converter<?>> clazz : config.getConverters())
+        gensonBuilder.withConverters(instanceClass(clazz));
+    }
+
+    // register genson feature
+    register(new GensonJaxRSFeature().use(gensonBuilder.create()));
+  }
+
+  private <T> T instanceClass(Class<T> clazz) throws Exception {
+    return clazz.newInstance();
   }
 }
