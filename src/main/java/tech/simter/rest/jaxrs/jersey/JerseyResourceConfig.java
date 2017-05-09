@@ -1,11 +1,5 @@
 package tech.simter.rest.jaxrs.jersey;
 
-import com.owlike.genson.Converter;
-import com.owlike.genson.Factory;
-import com.owlike.genson.GensonBuilder;
-import com.owlike.genson.convert.ContextualFactory;
-import com.owlike.genson.ext.GensonBundle;
-import com.owlike.genson.ext.jaxb.JAXBBundle;
 import com.owlike.genson.ext.jaxrs.GensonJaxRSFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.slf4j.Logger;
@@ -37,7 +31,8 @@ public class JerseyResourceConfig extends ResourceConfig implements ApplicationC
     this.applicationContext = applicationContext;
   }
 
-  private JerseyConfiguration jerseyConfiguration;
+  private final JerseyConfiguration jerseyConfiguration;
+  private final List<Class<?>> excludeTypes;
 
   /**
    * By default, this class will register all injectable bean with annotation @Path and @Provider,
@@ -46,8 +41,11 @@ public class JerseyResourceConfig extends ResourceConfig implements ApplicationC
    * @param jerseyConfiguration the jersey ResourceConfig configuration
    */
   public JerseyResourceConfig(JerseyConfiguration jerseyConfiguration) {
-    this.jerseyConfiguration = jerseyConfiguration;
+    this.jerseyConfiguration = jerseyConfiguration != null ? jerseyConfiguration : new JerseyConfiguration();
+    this.excludeTypes = jerseyConfiguration.getExcludeTypes() == null ?
+      Collections.emptyList() : jerseyConfiguration.getExcludeTypes();
   }
+
 
   @PostConstruct
   public void init() throws Exception {
@@ -55,81 +53,33 @@ public class JerseyResourceConfig extends ResourceConfig implements ApplicationC
     if (jerseyConfiguration.getPackages() != null && jerseyConfiguration.getPackages().length > 0) {
       logger.info("register packages - {}", StringUtils.arrayToCommaDelimitedString(jerseyConfiguration.getPackages()));
       packages(jerseyConfiguration.getPackages());
-    } else {
-      // register injectable @javax.ws.rs.Path bean
-      final List<Class<?>> excludeTypes = jerseyConfiguration.getExcludeTypes() == null ?
-        Collections.emptyList() : jerseyConfiguration.getExcludeTypes();
-      applicationContext.getBeansWithAnnotation(Path.class).forEach(
-        (k, v) -> {
-          if (!excludeTypes.contains(v.getClass())) {
-            logger.info("register @Path component - {}", v.getClass().getName());
-            register(v);
-          }
-        });
-
-      // register injectable @javax.ws.rs.ext.Provider bean
-      applicationContext.getBeansWithAnnotation(Provider.class).forEach(
-        (k, v) -> {
-          if (!excludeTypes.contains(v.getClass())) {
-            logger.info("register @Provider component - {}", v.getClass().getName());
-            register(v);
-          }
-        });
     }
+
+    // register injectable @javax.ws.rs.Path bean
+    applicationContext.getBeansWithAnnotation(Path.class).forEach(
+      (k, v) -> {
+        if (!excludeTypes.contains(v.getClass())) {
+          logger.info("register @Path component - {}", v.getClass().getName());
+          register(v);
+        }
+      });
+
+    // register injectable @javax.ws.rs.ext.Provider bean
+    applicationContext.getBeansWithAnnotation(Provider.class).forEach(
+      (k, v) -> {
+        if (!excludeTypes.contains(v.getClass())) {
+          logger.info("register @Provider component - {}", v.getClass().getName());
+          register(v);
+        }
+      });
 
     // set properties
     if (jerseyConfiguration.getProperties() != null) jerseyConfiguration.getProperties().forEach(this::property);
 
-    // custom genson ConverterFactory
-    if (jerseyConfiguration.getGenson() != null) {
-      configGenson();
-    }
-  }
-
-  private void configGenson() throws Exception {
-    GensonConfiguration config = jerseyConfiguration.getGenson();
-    if (config == null) return;
-
-    logger.info("register genson custom feature");
-
-    // initial genson
-    GensonBuilder gensonBuilder = new GensonBuilder()
-      .withBundle(new JAXBBundle())
-      .useConstructorWithArguments(true);
-
-    // withConverterFactory
-    if (config.getConverterFactories() != null) {
-      logger.info("register genson ConverterFactories");
-      for (Class<Factory<? extends Converter<?>>> clazz : config.getConverterFactories())
-        gensonBuilder.withConverterFactory(instanceClass(clazz));
-    }
-
-    // withContextualFactory
-    if (config.getContextualFactories() != null) {
-      logger.info("register genson ContextualFactories");
-      for (Class<ContextualFactory<?>> clazz : config.getContextualFactories())
-        gensonBuilder.withContextualFactory(instanceClass(clazz));
-    }
-
-    // withBundle
-    if (config.getBundles() != null) {
-      logger.info("register genson Bundles");
-      for (Class<GensonBundle> clazz : config.getBundles())
-        gensonBuilder.withBundle(instanceClass(clazz));
-    }
-
-    // withConverters
-    if (config.getConverters() != null) {
-      logger.info("register genson Converters");
-      for (Class<Converter<?>> clazz : config.getConverters())
-        gensonBuilder.withConverters(instanceClass(clazz));
-    }
-
     // register genson feature
-    register(new GensonJaxRSFeature().use(gensonBuilder.create()));
-  }
-
-  private <T> T instanceClass(Class<T> clazz) throws Exception {
-    return clazz.newInstance();
+    if (jerseyConfiguration.getGenson() != null) {
+      GensonJaxRSFeature auto = jerseyConfiguration.getGenson().auto(applicationContext, excludeTypes);
+      if (auto != null) register(auto);
+    }
   }
 }

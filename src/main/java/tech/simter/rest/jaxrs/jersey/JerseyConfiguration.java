@@ -60,7 +60,13 @@ public class JerseyConfiguration {
     this.properties = properties;
   }
 
+  /**
+   * Default enabled auto {@link GensonConfiguration}
+   *
+   * @return the configuration
+   */
   public GensonConfiguration getGenson() {
+    if (genson == null) genson = new GensonConfiguration();
     return genson;
   }
 
