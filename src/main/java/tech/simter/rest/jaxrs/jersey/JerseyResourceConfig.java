@@ -5,6 +5,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
@@ -31,24 +32,22 @@ public class JerseyResourceConfig extends ResourceConfig implements ApplicationC
     this.applicationContext = applicationContext;
   }
 
-  private final JerseyConfiguration jerseyConfiguration;
-  private final List<Class<?>> excludeTypes;
+  @Autowired
+  private JerseyConfiguration jerseyConfiguration;
+  private List<Class<?>> excludeTypes;
 
   /**
    * By default, this class will register all injectable bean with annotation @Path and @Provider,
    * but exclude all bean type within <code>excludeTypes</code>.
-   *
-   * @param jerseyConfiguration the jersey ResourceConfig configuration
    */
-  public JerseyResourceConfig(JerseyConfiguration jerseyConfiguration) {
-    this.jerseyConfiguration = jerseyConfiguration != null ? jerseyConfiguration : new JerseyConfiguration();
-    this.excludeTypes = jerseyConfiguration.getExcludeTypes() == null ?
-      Collections.emptyList() : jerseyConfiguration.getExcludeTypes();
+  public JerseyResourceConfig() {
   }
-
 
   @PostConstruct
   public void init() throws Exception {
+    excludeTypes = jerseyConfiguration.getExcludeTypes() == null ?
+      Collections.emptyList() : jerseyConfiguration.getExcludeTypes();
+
     // auto register all jax-rs annotation resources（@Path、@Provider）
     if (jerseyConfiguration.getPackages() != null && jerseyConfiguration.getPackages().length > 0) {
       logger.info("register packages - {}", StringUtils.arrayToCommaDelimitedString(jerseyConfiguration.getPackages()));
