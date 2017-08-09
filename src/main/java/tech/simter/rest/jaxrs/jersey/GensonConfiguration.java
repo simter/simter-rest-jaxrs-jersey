@@ -83,6 +83,8 @@ public class GensonConfiguration {
     // initial genson
     GensonBuilder gensonBuilder = new GensonBuilder()
       .withBundle(new JAXBBundle())
+      .useRuntimeType(true)
+      //.useClassMetadata(true)
       .useConstructorWithArguments(true);
 
     // withConverterFactory: register injectable com.owlike.genson.Factory bean
