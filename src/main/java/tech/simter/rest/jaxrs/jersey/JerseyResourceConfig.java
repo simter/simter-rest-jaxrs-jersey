@@ -8,10 +8,11 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import javax.annotation.PostConstruct;
 import javax.ws.rs.Path;
 import javax.ws.rs.ext.Provider;
 import java.util.Collections;
@@ -43,7 +44,7 @@ public class JerseyResourceConfig extends ResourceConfig implements ApplicationC
   public JerseyResourceConfig() {
   }
 
-  @PostConstruct
+  @EventListener(ContextRefreshedEvent.class)
   public void init() throws Exception {
     excludeTypes = jerseyConfiguration.getExcludeTypes() == null ?
       Collections.emptyList() : jerseyConfiguration.getExcludeTypes();
