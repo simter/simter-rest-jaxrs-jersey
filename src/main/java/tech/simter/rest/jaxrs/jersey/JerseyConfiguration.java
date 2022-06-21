@@ -9,7 +9,7 @@ import java.util.Map;
 /**
  * The type-safe Configuration for {@link JerseyResourceConfig}.
  * <p>
- * see also &lt;https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-external-config.html&gt;
+ * see also <a href="https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-external-config.html">Externalized Configuration</a>;
  *
  * @author RJ
  */
@@ -25,7 +25,7 @@ public class JerseyConfiguration {
    * The auto scan packages for Jersey ResourceConfig.
    * <p>
    * Config it through property <code>simter.jersey.packages</code>.
-   * This can not be exclude by <code>excludeTypes</code> configuration.
+   * This can not be excluded by <code>excludeTypes</code> configuration.
    *
    * @return the packages
    */
@@ -38,11 +38,11 @@ public class JerseyConfiguration {
   }
 
   /**
-   * The exclude bean type for Jersey ResourceConfig.
+   * To exclude bean type for Jersey ResourceConfig.
    * <p>
    * Config it through property <code>simter.jersey.excludeTypes</code>.
    *
-   * @return the exclude types
+   * @return to exclude types
    */
   public List<Class<?>> getExcludeTypes() {
     return excludeTypes;

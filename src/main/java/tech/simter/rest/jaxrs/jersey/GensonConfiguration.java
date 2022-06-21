@@ -14,7 +14,7 @@ import org.springframework.context.ApplicationContext;
 import java.util.List;
 
 /**
- * The genson configuration for JAX-RS. Use by {@link JerseyConfiguration#genson}
+ * The genson configuration for JAX-RS. Use by {@link JerseyConfiguration#getGenson}
  *
  * @author RJ
  */
@@ -70,7 +70,7 @@ public class GensonConfiguration {
    * Generate a new {@link GensonJaxRSFeature} instance by spring context auto bean discover.
    *
    * @param applicationContext the spring context
-   * @param excludeTypes       the exclude types
+   * @param excludeTypes       to exclude types
    * @return the instance
    * @throws Exception if instance class failed
    */
@@ -148,6 +148,6 @@ public class GensonConfiguration {
   }
 
   private static <T> T instanceClass(Class<T> clazz) throws Exception {
-    return clazz.newInstance();
+    return clazz.getDeclaredConstructor().newInstance();
   }
 }
